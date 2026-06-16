@@ -1,16 +1,1 @@
-{
-  "name": "Control Financiero Personal",
-  "short_name": "Finanzas",
-  "start_url": "finanzas_personal.html",
-  "display": "standalone",
-  "background_color": "#1F3864",
-  "theme_color": "#1F3864",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%231F3864'/%3E%3Crect x='28' y='110' width='28' height='54' rx='4' fill='%234ade80'/%3E%3Crect x='68' y='80' width='28' height='84' rx='4' fill='%2360a5fa'/%3E%3Crect x='108' y='55' width='28' height='109' rx='4' fill='%234ade80'/%3E%3Crect x='148' y='30' width='28' height='134' rx='4' fill='%2360a5fa'/%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
-}
+{"name":"Control Financiero Personal","short_name":"Finanzas","start_url":"finanzas_personal.html","display":"standalone","background_color":"#1F3864","theme_color":"#1F3864","icons":[{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAACAElEQVR42u3cQQlAIRRFQZtYwwymcGEQy1jLIK6M8OEjIjhwCrzLrF+IqUq/CyYQQAJIAAkgCSABJIAEkASQABJAAkgCSAAJIAEkASSABJAAEkASQAJIAAkgCSABJIAEkK6s9Lk9gAACSAAJIAEEEEAACSABJIAAAgggASSABBBAAAEEEEACSAAJIIAAAkgACSABBBBAAAkgAaSP8mjbAwgggAQQQAABBBBAAAEkgAACCCCAAAIIIAEEEEAAAQQQQAABBJAAAggggAACCCCABBBAAAEEEEAAASSAAAIIoEsHBQgggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCDvTtwLEEAAAQQQQAAZFCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIPcCBBBAAAEEEEAGBQgggAACCCCAADIoQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEkHsBAggggAACCCCA3AsQQAABBBBAABkUIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIoNcA6Z0AEkACSAAJIAkgASSABJAEkAASQAJIAkgACSABJAEkgASQABJAEkACSAAJIAkgHWgBml/nfuX9F8oAAAAASUVORK5CYII=","sizes":"192x192","type":"image/png","purpose":"any maskable"}]}

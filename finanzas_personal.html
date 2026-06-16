@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Financiero Personal 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#ffffff;--bg-secondary:#f8f9fa;--bg-tertiary:#f1f3f5;
+  --text-primary:#1a1a1a;--text-secondary:#6b7280;--text-success:#15803d;
+  --text-danger:#dc2626;--text-warning:#d97706;--text-info:#1d4ed8;
+  --bg-success:#dcfce7;--bg-danger:#fee2e2;--bg-warning:#fef3c7;--bg-info:#dbeafe;
+  --border:#e5e7eb;--border-md:#d1d5db;--radius-md:8px;--radius-lg:12px
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg-primary:#1e1e1e;--bg-secondary:#2a2a2a;--bg-tertiary:#121212;
+  --text-primary:#f0f0f0;--text-secondary:#9ca3af;--text-success:#4ade80;
+  --text-danger:#f87171;--text-warning:#fbbf24;--text-info:#60a5fa;
+  --bg-success:#14532d;--bg-danger:#7f1d1d;--bg-warning:#78350f;--bg-info:#1e3a5f;
+  --border:#374151;--border-md:#4b5563
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-tertiary);color:var(--text-primary);max-width:480px;margin:0 auto;min-height:100vh}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.nav{display:flex;background:var(--bg-primary);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-btn{flex:1;padding:10px 4px 8px;border:none;background:none;cursor:pointer;font-size:10px;color:var(--text-secondary);display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:2px solid transparent}
+.nav-btn.active{color:var(--text-info);border-bottom-color:var(--text-info)}
+.nav-btn i{font-size:22px}
+.page{display:none;padding:12px;flex:1}
+.page.active{display:block}
+.card{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.metric{background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px}
+.metric-label{font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.metric-value{font-size:20px;font-weight:500}
+.metric-value.green{color:var(--text-success)}
+.metric-value.red{color:var(--text-danger)}
+.section-title{font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px}
+.form-row{margin-bottom:10px}
+.form-label{font-size:13px;color:var(--text-secondary);margin-bottom:4px;display:block}
+input,select,textarea{width:100%;padding:9px 11px;font-size:14px;background:var(--bg-primary);border:1px solid var(--border-md);border-radius:var(--radius-md);color:var(--text-primary);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--text-info)}
+textarea{height:60px;resize:none}
+.btn-primary{width:100%;padding:12px;background:var(--bg-info);border:none;border-radius:var(--radius-md);color:var(--text-info);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:active{opacity:.85}
+.btn-danger{padding:5px 8px;background:none;border:1px solid var(--text-danger);border-radius:var(--radius-md);color:var(--text-danger);font-size:11px;cursor:pointer}
+.btn-outline{display:flex;align-items:center;gap:8px;padding:11px 14px;border:1px solid var(--border-md);border-radius:var(--radius-md);background:none;color:var(--text-secondary);font-size:13px;cursor:pointer;margin-bottom:10px;width:100%;font-weight:500}
+.btn-outline:hover{background:var(--bg-secondary)}
+.btn-excel{border-color:#15803d;color:#15803d}
+.btn-pdf{border-color:#dc2626;color:#dc2626}
+.btn-json{border-color:var(--border-md);color:var(--text-secondary)}
+.item-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.item-row:last-child{border-bottom:none}
+.item-left{display:flex;align-items:center;gap:10px;min-width:0}
+.item-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.item-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-sub{font-size:11px;color:var(--text-secondary)}
+.item-amount{font-size:13px;font-weight:600;text-align:right;white-space:nowrap}
+.item-amount.out{color:var(--text-danger)}
+.item-amount.in{color:var(--text-success)}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
+.badge-pending{background:var(--bg-warning);color:var(--text-warning)}
+.badge-paid{background:var(--bg-success);color:var(--text-success)}
+.badge-overdue{background:var(--bg-danger);color:var(--text-danger)}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{padding:5px 11px;border:1px solid var(--border-md);border-radius:20px;font-size:12px;background:none;color:var(--text-secondary);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.filter-chip.active{background:var(--bg-info);border-color:var(--bg-info);color:var(--text-info)}
+.empty-state{text-align:center;padding:28px 16px;color:var(--text-secondary)}
+.empty-state i{font-size:36px;display:block;margin-bottom:8px;opacity:.3}
+.tab-row{display:flex;border:1px solid var(--border-md);border-radius:var(--radius-md);overflow:hidden;margin-bottom:14px}
+.tab-btn{flex:1;padding:9px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--text-secondary)}
+.tab-btn.active{background:var(--bg-info);color:var(--text-info);font-weight:600}
+.cat-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cat-bar-name{font-size:12px;color:var(--text-secondary);width:100px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-bar-track{flex:1;height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:3px}
+.cat-bar-val{font-size:12px;color:var(--text-primary);width:80px;text-align:right;flex-shrink:0}
+.cuenta-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.cuenta-item:last-child{border-bottom:none}
+.check-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-md);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.check-btn.paid{background:var(--bg-success);border-color:var(--text-success);color:var(--text-success)}
+.check-btn i{color:var(--text-secondary)}
+.check-btn.paid i{color:var(--text-success)}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:2px}
+.page-header h1{font-size:18px;font-weight:600}
+select.month-sel{font-size:13px;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);width:auto}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:var(--radius-md);font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.export-section-title{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+/* PDF print styles */
+@media print{
+  .nav,.no-print{display:none!important}
+  .page{display:block!important;padding:0}
+  body{max-width:100%;background:#fff;color:#000}
+  .card{border:1px solid #ccc;break-inside:avoid;margin-bottom:8px}
+  #pdf-report{display:block!important}
+  #page-dashboard,#page-gastos,#page-cuentas,#page-ingresos,#page-reportes{display:none!important}
+}
+#pdf-report{display:none}
+.pdf-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px}
+.pdf-table th{background:#1f3864;color:#fff;padding:6px 8px;text-align:left}
+.pdf-table td{padding:5px 8px;border-bottom:1px solid #e5e7eb}
+.pdf-table tr:nth-child(even) td{background:#f8f9fa}
+.pdf-header{background:#1f3864;color:#fff;padding:16px;margin-bottom:16px;border-radius:8px}
+.pdf-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.pdf-kpi{background:#f1f3f5;border-radius:6px;padding:10px;text-align:center}
+.pdf-kpi-label{font-size:10px;color:#6b7280;margin-bottom:4px}
+.pdf-kpi-value{font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <i class="ti ti-chart-bar"></i>Dashboard
+    </button>
+    <button class="nav-btn" onclick="showPage('gastos')" id="nav-gastos">
+      <i class="ti ti-receipt"></i>Gastos
+    </button>
+    <button class="nav-btn" onclick="showPage('cuentas')" id="nav-cuentas">
+      <i class="ti ti-calendar-due"></i>Cuentas
+    </button>
+    <button class="nav-btn" onclick="showPage('ingresos')" id="nav-ingresos">
+      <i class="ti ti-wallet"></i>Ingresos
+    </button>
+    <button class="nav-btn" onclick="showPage('reportes')" id="nav-reportes">
+      <i class="ti ti-report"></i>Reportes
+    </button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <main class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <h1 id="db-mes-title">Junio 2026</h1>
+        <div style="font-size:12px;color:var(--text-secondary)" id="db-fecha-hoy"></div>
+      </div>
+      <select class="month-sel" id="db-mes-sel" onchange="renderDashboard()">
+        <option value="5">Mayo</option><option value="6" selected>Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option>
+        <option value="9">Septiembre</option><option value="10">Octubre</option>
+        <option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Ingresos cobrados</div><div class="metric-value green" id="db-ingresos">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Gastos variables</div><div class="metric-value red" id="db-gastos">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Cuentas fijas</div><div class="metric-value" id="db-cuentas">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Resultado neto</div><div class="metric-value" id="db-resultado">Gs. 0</div></div>
+    </div>
+    <div class="card"><div class="section-title">Gastos por categoría</div><div id="db-categorias"></div></div>
+    <div class="card"><div class="section-title">Cuentas pendientes</div><div id="db-cuentas-estado"></div></div>
+    <div class="card"><div class="section-title">Últimos movimientos</div><div id="db-ultimos"></div></div>
+  </main>
+
+  <!-- GASTOS -->
+  <main class="page" id="page-gastos">
+    <div class="card">
+      <div class="section-title">Nuevo gasto</div>
+      <div class="form-row"><label class="form-label">Fecha</label><input type="date" id="g-fecha"></div>
+      <div class="form-row"><label class="form-label">Concepto</label><input type="text" id="g-concepto" placeholder="Ej: Almuerzo, farmacia, nafta..."></div>
+      <div class="form-row"><label class="form-label">Categoría</label>
+        <select id="g-cat"><option value="">Seleccioná</option>
+          <option>Alimentación</option><option>Transporte</option><option>Salud</option>
+          <option>Educación</option><option>Hogar</option><option>Entretenimiento</option>
+          <option>Ropa/Calzado</option><option>Servicios</option><option>Otros</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Monto (Gs.)</label><input type="number" id="g-monto" placeholder="0" min="0"></div>
+      <div class="form-row"><label class="form-label">Medio de pago</label>
+        <select id="g-medio">
+          <option>Efectivo</option><option>Ueno Mama</option><option>Solar cuenta</option>
+          <option>Itaú Mama</option><option>Tarjeta débito</option><option>Tarjeta crédito</option><option>Transferencia</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Observación (opcional)</label><textarea id="g-obs" placeholder="Nota..."></textarea></div>
+      <button class="btn-primary" onclick="guardarGasto()"><i class="ti ti-plus"></i> Guardar gasto</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="section-title" style="margin:0">Historial</div>
+        <select class="month-sel" id="g-filtro-mes" onchange="renderGastos()" style="font-size:12px;padding:5px 8px">
+          <option value="all">Todos</option><option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Sep</option>
+          <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="filtrarCat(this,'all')">Todos</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Alimentación')">Alim.</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Transporte')">Transp.</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Salud')">Salud</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Hogar')">Hogar</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Educación')">Educ.</button>
+        <button class="filter-chip" onclick="filtrarCat(this,'Otros')">Otros</button>
+      </div>
+      <div id="g-lista"></div>
+    </div>
+  </main>
+
+  <!-- CUENTAS -->
+  <main class="page" id="page-cuentas">
+    <div class="page-header">
+      <h1>Cuentas fijas</h1>
+      <select class="month-sel" id="c-mes-sel" onchange="renderCuentas()">
+        <option value="5">Mayo</option><option value="6" selected>Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option>
+        <option value="9">Septiembre</option><option value="10">Octubre</option>
+        <option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Total mes</div><div class="metric-value" id="c-total">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Pagado</div><div class="metric-value green" id="c-pagado">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value red" id="c-pendiente">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Progreso</div><div class="metric-value" id="c-progreso">0%</div></div>
+    </div>
+    <div class="card"><div class="section-title">Cuotas financieras</div><div id="c-cuotas"></div></div>
+    <div class="card"><div class="section-title">Servicios fijos</div><div id="c-servicios"></div></div>
+  </main>
+
+  <!-- INGRESOS -->
+  <main class="page" id="page-ingresos">
+    <div class="tab-row">
+      <button class="tab-btn active" id="ing-tab-ditalento" onclick="showIngTab('ditalento')">DiTalento</button>
+      <button class="tab-btn" id="ing-tab-axo" onclick="showIngTab('axo')">Axo</button>
+    </div>
+    <div id="ing-form-ditalento">
+      <div class="card">
+        <div class="section-title">Registrar cobro DiTalento</div>
+        <div class="form-row"><label class="form-label">Fecha</label><input type="date" id="dt-fecha"></div>
+        <div class="form-row"><label class="form-label">Tipo</label>
+          <select id="dt-tipo"><option>Curso Abierto</option><option>Curso Personalizado</option><option>Curso In-Company</option><option>Proyecto</option></select>
+        </div>
+        <div class="form-row"><label class="form-label">Cliente / Detalle</label><input type="text" id="dt-cliente" placeholder="Nombre del cliente..."></div>
+        <div class="form-row"><label class="form-label">Monto (Gs.)</label><input type="number" id="dt-monto" placeholder="0" min="0"></div>
+        <div class="form-row"><label class="form-label">Estado</label>
+          <select id="dt-estado"><option>Cobrado</option><option>Pendiente</option><option>Parcial</option></select>
+        </div>
+        <div class="form-row"><label class="form-label">Observación</label><textarea id="dt-obs" placeholder="Notas..."></textarea></div>
+        <button class="btn-primary" onclick="guardarIngreso('DiTalento')"><i class="ti ti-plus"></i> Guardar</button>
+      </div>
+    </div>
+    <div id="ing-form-axo" style="display:none">
+      <div class="card">
+        <div class="section-title">Registrar cobro Axo</div>
+        <div class="form-row"><label class="form-label">Fecha</label><input type="date" id="axo-fecha"></div>
+        <div class="form-row"><label class="form-label">Tipo</label>
+          <select id="axo-tipo"><option>Obra</option><option>Proyecto</option></select>
+        </div>
+        <div class="form-row"><label class="form-label">Cliente / Detalle</label><input type="text" id="axo-cliente" placeholder="Nombre del cliente..."></div>
+        <div class="form-row"><label class="form-label">Monto (Gs.)</label><input type="number" id="axo-monto" placeholder="0" min="0"></div>
+        <div class="form-row"><label class="form-label">Estado</label>
+          <select id="axo-estado"><option>Cobrado</option><option>Pendiente</option><option>Parcial</option></select>
+        </div>
+        <div class="form-row"><label class="form-label">Observación</label><textarea id="axo-obs" placeholder="Notas..."></textarea></div>
+        <button class="btn-primary" onclick="guardarIngreso('Axo')"><i class="ti ti-plus"></i> Guardar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="section-title" style="margin:0">Historial cobros</div>
+        <div style="font-size:12px;color:var(--text-success);font-weight:600" id="ing-total-cobrado"></div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="filtrarIng(this,'all')">Todos</button>
+        <button class="filter-chip" onclick="filtrarIng(this,'DiTalento')">DiTalento</button>
+        <button class="filter-chip" onclick="filtrarIng(this,'Axo')">Axo</button>
+        <button class="filter-chip" onclick="filtrarIng(this,'Cobrado')">Cobrado</button>
+        <button class="filter-chip" onclick="filtrarIng(this,'Pendiente')">Pendiente</button>
+      </div>
+      <div id="ing-lista"></div>
+    </div>
+  </main>
+
+  <!-- REPORTES -->
+  <main class="page" id="page-reportes">
+    <h1 style="font-size:18px;font-weight:600;margin-bottom:12px;padding-top:2px">Reportes 2026</h1>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Ingresos cobrados</div><div class="metric-value green" id="rep-ing">Gs. 0</div></div>
+      <div class="metric"><div class="metric-label">Gastos variables</div><div class="metric-value red" id="rep-gas">Gs. 0</div></div>
+      <div class="metric" style="grid-column:span 2"><div class="metric-label">Resultado neto del año</div><div class="metric-value" id="rep-neto">Gs. 0</div></div>
+    </div>
+
+    <!-- EXPORTAR -->
+    <div class="card">
+      <div class="section-title">Exportar reportes</div>
+      <div class="export-section-title">📊 Excel (.xlsx)</div>
+      <button class="btn-outline btn-excel" onclick="exportExcel('gastos')"><i class="ti ti-table-export"></i> Detalle de Gastos — Excel</button>
+      <button class="btn-outline btn-excel" onclick="exportExcel('ingresos')"><i class="ti ti-table-export"></i> Detalle de Ingresos — Excel</button>
+      <button class="btn-outline btn-excel" onclick="exportExcel('completo')"><i class="ti ti-table-export"></i> Reporte completo — Excel (todas las hojas)</button>
+      <div class="export-section-title">📄 PDF</div>
+      <button class="btn-outline btn-pdf" onclick="exportPDF('mes')"><i class="ti ti-file-type-pdf"></i> Resumen del mes actual — PDF</button>
+      <button class="btn-outline btn-pdf" onclick="exportPDF('anual')"><i class="ti ti-file-type-pdf"></i> Reporte anual completo — PDF</button>
+      <div class="export-section-title">💾 Backup</div>
+      <button class="btn-outline btn-json" onclick="exportarJSON()"><i class="ti ti-download"></i> Exportar backup (JSON)</button>
+      <button class="btn-outline btn-json" onclick="document.getElementById('imp-file').click()"><i class="ti ti-upload"></i> Importar backup (JSON)</button>
+      <input type="file" id="imp-file" style="display:none" accept=".json" onchange="leerImport(event)">
+      <p style="font-size:11px;color:var(--text-secondary);margin-top:6px">El backup JSON guarda TODO. Exportalo regularmente para no perder datos.</p>
+    </div>
+
+    <div class="card"><div class="section-title">Ingresos por empresa</div><div id="rep-empresas"></div></div>
+    <div class="card"><div class="section-title">DiTalento por tipo</div><div id="rep-dt-tipos"></div></div>
+    <div class="card"><div class="section-title">Gastos por categoría</div><div id="rep-cats"></div></div>
+    <div class="card">
+      <div class="section-title">Flujo mensual (miles Gs.)</div>
+      <div style="position:relative;height:200px"><canvas id="chart-flujo"></canvas></div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--text-secondary)">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22c55e;margin-right:4px"></span>Ingresos</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ef4444;margin-right:4px"></span>Gastos</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- PDF REPORT (oculto, solo para print) -->
+<div id="pdf-report"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const MESES=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const CAT_COLORS={'Alimentación':'#3b82f6','Transporte':'#f59e0b','Salud':'#ef4444','Educación':'#8b5cf6','Hogar':'#6b7280','Entretenimiento':'#ec4899','Ropa/Calzado':'#14b8a6','Servicios':'#3266ad','Otros':'#9ca3af'};
+const CAT_ICONS={'Alimentación':'ti-tools-kitchen-2','Transporte':'ti-car','Salud':'ti-heart-rate-monitor','Educación':'ti-book','Hogar':'ti-home','Entretenimiento':'ti-device-tv','Ropa/Calzado':'ti-shirt','Servicios':'ti-bolt','Otros':'ti-dots'};
+
+// cuotaBase = cuota en Junio 2026 (mes 6), total = total de cuotas
+// La cuota de cualquier mes = cuotaBase + (mes - 6)
+const CUENTAS_FIJAS=[
+  {nombre:'Credi Agil',monto:1670000,cuotaBase:13,cuotaTotal:24,venc:15,tipo:'cuota',medio:'Solar cuenta'},
+  {nombre:'TU Financiera',monto:1265000,cuotaBase:6,cuotaTotal:12,venc:12,tipo:'cuota',medio:'Ueno Mama'},
+  {nombre:'SOLAR',monto:840000,cuotaBase:5,cuotaTotal:36,venc:25,tipo:'cuota',medio:'Solar cuenta'},
+  {nombre:'PINOZA',monto:450000,cuotaBase:16,cuotaTotal:24,venc:15,tipo:'cuota',medio:'Itaú Mama'},
+  {nombre:'ANDE',monto:300000,cuotaBase:null,cuotaTotal:null,venc:10,tipo:'servicio',medio:'Solar cuenta'},
+  {nombre:'FLOW',monto:220000,cuotaBase:null,cuotaTotal:null,venc:10,tipo:'servicio',medio:'Solar cuenta'},
+  {nombre:'Telefonía',monto:150000,cuotaBase:null,cuotaTotal:null,venc:13,tipo:'servicio',medio:'Solar cuenta'},
+  {nombre:'Prosegur',monto:220000,cuotaBase:null,cuotaTotal:null,venc:11,tipo:'servicio',medio:''},
+  {nombre:'Contador',monto:250000,cuotaBase:null,cuotaTotal:null,venc:18,tipo:'servicio',medio:''},
+  {nombre:'Santa Clara',monto:255000,cuotaBase:null,cuotaTotal:null,venc:12,tipo:'servicio',medio:''},
+  {nombre:'GYM',monto:160000,cuotaBase:null,cuotaTotal:null,venc:16,tipo:'servicio',medio:''},
+  {nombre:'Lipoles',monto:480000,cuotaBase:null,cuotaTotal:null,venc:5,tipo:'servicio',medio:''},
+  {nombre:'AQUAMAQ',monto:110000,cuotaBase:null,cuotaTotal:null,venc:null,tipo:'servicio',medio:''},
+];
+const TOTAL_CUENTAS=CUENTAS_FIJAS.reduce((s,c)=>s+c.monto,0);
+
+// Calcula la etiqueta de cuota para un mes dado (mes = 1-12)
+// Junio = mes 6 es la base. Si la cuota ya se terminó, retorna null (se oculta)
+function getCuota(c, mes){
+  if(c.cuotaBase===null) return 'fijo';
+  const cuotaMes = c.cuotaBase + (mes - 6);
+  if(cuotaMes > c.cuotaTotal) return null; // cuota terminada
+  if(cuotaMes < 1) return null; // aún no empezó
+  return `${cuotaMes}/${c.cuotaTotal}`;
+}
+
+// Filtra cuentas activas para un mes dado (excluye cuotas terminadas)
+function getCuentasActivas(mes){
+  return CUENTAS_FIJAS.filter(c => getCuota(c, mes) !== null);
+}
+
+function getData(){try{return JSON.parse(localStorage.getItem('finData2026')||'{}')}catch{return{}}}
+function saveData(d){localStorage.setItem('finData2026',JSON.stringify(d))}
+function getGastos(){return getData().gastos||[]}
+function getIngresos(){return getData().ingresos||[]}
+function getPagos(){return getData().pagos||{}}
+function fmt(n){return 'Gs. '+Math.round(n).toLocaleString('es-PY')}
+function fmtNum(n){return Math.round(n).toLocaleString('es-PY')}
+function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur)}
+
+// ── EXCEL EXPORT ─────────────────────────────────────────────────────────────
+function exportExcel(tipo){
+  const wb=XLSX.utils.book_new();
+  const gastos=getGastos().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const ingresos=getIngresos().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const pagos=getPagos();
+
+  // Hoja Gastos
+  if(tipo==='gastos'||tipo==='completo'){
+    const rows=[['Fecha','Mes','Concepto','Categoría','Monto (Gs.)','Medio de Pago','Observación']];
+    gastos.forEach(g=>rows.push([g.fecha,MESES[new Date(g.fecha).getMonth()+1],g.concepto,g.cat,g.monto,g.medio,g.obs||'']));
+    // Total
+    rows.push(['','','','TOTAL',gastos.reduce((s,g)=>s+g.monto,0),'','']);
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:12},{wch:12},{wch:28},{wch:18},{wch:14},{wch:16},{wch:28}];
+    XLSX.utils.book_append_sheet(wb,ws,'Gastos Variables');
+  }
+
+  // Hoja Ingresos
+  if(tipo==='ingresos'||tipo==='completo'){
+    const rows=[['Fecha','Mes','Empresa','Tipo','Cliente / Detalle','Monto (Gs.)','Estado','Observación']];
+    ingresos.forEach(i=>rows.push([i.fecha,MESES[new Date(i.fecha).getMonth()+1],i.empresa,i.tipo,i.cliente,i.monto,i.estado,i.obs||'']));
+    rows.push(['','','','','TOTAL COBRADO',ingresos.filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0),'','']);
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:12},{wch:12},{wch:12},{wch:20},{wch:30},{wch:14},{wch:12},{wch:28}];
+    XLSX.utils.book_append_sheet(wb,ws,'Ingresos');
+  }
+
+  // Hoja Cuentas Fijas
+  if(tipo==='completo'){
+    const rowsCF=[['Concepto','Tipo','Cuota','Monto (Gs.)','Día Vencimiento','Medio de Pago']];
+    CUENTAS_FIJAS.forEach(c=>rowsCF.push([c.nombre,c.tipo,getCuota(c,6),c.monto,c.venc||'Sin fecha',c.medio]));
+    rowsCF.push(['TOTAL','','',TOTAL_CUENTAS,'','']);
+    const wsCF=XLSX.utils.aoa_to_sheet(rowsCF);
+    wsCF['!cols']=[{wch:18},{wch:12},{wch:10},{wch:14},{wch:16},{wch:16}];
+    XLSX.utils.book_append_sheet(wb,wsCF,'Cuentas Fijas');
+
+    // Hoja Resumen Mensual
+    const rowsRes=[['Mes','Ingresos Cobrados','Gastos Variables','Cuentas Fijas','Total Gastos','Resultado Neto']];
+    for(let m=1;m<=12;m++){
+      const ing=ingresos.filter(i=>new Date(i.fecha).getMonth()+1===m&&i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+      const gas=gastos.filter(g=>new Date(g.fecha).getMonth()+1===m).reduce((s,g)=>s+g.monto,0);
+      const cf=TOTAL_CUENTAS;
+      rowsRes.push([MESES[m],ing,gas,cf,gas+cf,ing-(gas+cf)]);
+    }
+    const totIng=ingresos.filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+    const totGas=gastos.reduce((s,g)=>s+g.monto,0);
+    rowsRes.push(['TOTAL ANUAL',totIng,totGas,TOTAL_CUENTAS*12,totGas+TOTAL_CUENTAS*12,totIng-(totGas+TOTAL_CUENTAS*12)]);
+    const wsRes=XLSX.utils.aoa_to_sheet(rowsRes);
+    wsRes['!cols']=[{wch:14},{wch:18},{wch:18},{wch:14},{wch:16},{wch:16}];
+    XLSX.utils.book_append_sheet(wb,wsRes,'Resumen Mensual');
+
+    // Hoja Por Categoría
+    const cats=[...new Set(gastos.map(g=>g.cat))];
+    const rowsCat=[['Categoría',...MESES.slice(1),'TOTAL']];
+    cats.forEach(cat=>{
+      const montos=MESES.slice(1).map((_,i)=>gastos.filter(g=>g.cat===cat&&new Date(g.fecha).getMonth()===i).reduce((s,g)=>s+g.monto,0));
+      rowsCat.push([cat,...montos,montos.reduce((s,v)=>s+v,0)]);
+    });
+    const wsCat=XLSX.utils.aoa_to_sheet(rowsCat);
+    wsCat['!cols']=[{wch:18},...Array(13).fill({wch:12})];
+    XLSX.utils.book_append_sheet(wb,wsCat,'Gastos por Categoría');
+  }
+
+  const fecha=new Date().toISOString().slice(0,10);
+  const nombre=tipo==='gastos'?'gastos':tipo==='ingresos'?'ingresos':'reporte_completo';
+  XLSX.writeFile(wb,`finanzas_${nombre}_${fecha}.xlsx`);
+  toast('Excel generado ✓');
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────────────────────────
+function exportPDF(modo){
+  const gastos=getGastos().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const ingresos=getIngresos().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const pagos=getPagos();
+  const fecha=new Date().toLocaleDateString('es-PY',{day:'numeric',month:'long',year:'numeric'});
+
+  let html='';
+
+  if(modo==='mes'){
+    const mes=parseInt(document.getElementById('db-mes-sel').value);
+    const gMes=gastos.filter(g=>new Date(g.fecha).getMonth()+1===mes);
+    const iMes=ingresos.filter(i=>new Date(i.fecha).getMonth()+1===mes);
+    const totalIng=iMes.filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+    const totalGas=gMes.reduce((s,g)=>s+g.monto,0);
+    const cuentasPag=getCuentasActivas(mes).filter(c=>!!pagos[`${c.nombre}-${mes}`]).reduce((s,c)=>s+c.monto,0);
+    const totalMesC=getCuentasActivas(mes).reduce((s,c)=>s+c.monto,0);
+    const neto=totalIng-totalGas-cuentasPag;
+
+    html=`
+    <div class="pdf-header">
+      <h1 style="font-size:20px;margin-bottom:4px">Control Financiero Personal</h1>
+      <div style="font-size:13px;opacity:.8">${MESES[mes]} 2026 · Generado el ${fecha}</div>
+    </div>
+    <div class="pdf-kpi-grid">
+      <div class="pdf-kpi"><div class="pdf-kpi-label">Ingresos</div><div class="pdf-kpi-value" style="color:#15803d">${fmtNum(totalIng)}</div></div>
+      <div class="pdf-kpi"><div class="pdf-kpi-label">Gastos variables</div><div class="pdf-kpi-value" style="color:#dc2626">${fmtNum(totalGas)}</div></div>
+      <div class="pdf-kpi"><div class="pdf-kpi-label">Cuentas pagadas</div><div class="pdf-kpi-value">${fmtNum(cuentasPag)}</div></div>
+      <div class="pdf-kpi"><div class="pdf-kpi-label">Resultado</div><div class="pdf-kpi-value" style="color:${(totalIng-totalGas-cuentasPag)>=0?'#15803d':'#dc2626'}">${fmtNum(totalIng-totalGas-cuentasPag)}</div></div>
+    </div>
+    <h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864">INGRESOS DEL MES</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Fecha</th><th>Empresa</th><th>Tipo</th><th>Cliente</th><th>Monto (Gs.)</th><th>Estado</th></tr></thead>
+      <tbody>${iMes.length?iMes.map(i=>`<tr><td>${i.fecha}</td><td>${i.empresa}</td><td>${i.tipo}</td><td>${i.cliente}</td><td style="text-align:right">${fmtNum(i.monto)}</td><td>${i.estado}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:#9ca3af">Sin ingresos</td></tr>'}</tbody>
+    </table>
+    <h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864">GASTOS VARIABLES</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Medio</th><th>Monto (Gs.)</th></tr></thead>
+      <tbody>${gMes.length?gMes.map(g=>`<tr><td>${g.fecha}</td><td>${g.concepto}</td><td>${g.cat}</td><td>${g.medio}</td><td style="text-align:right">${fmtNum(g.monto)}</td></tr>`).join('')+'<tr style="font-weight:600"><td colspan="4">TOTAL</td><td style="text-align:right">${fmtNum(totalGas)}</td></tr>':'<tr><td colspan="5" style="text-align:center;color:#9ca3af">Sin gastos</td></tr>'}
+      </tbody>
+    </table>
+    <h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864">CUENTAS FIJAS</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Concepto</th><th>Cuota</th><th>Monto (Gs.)</th><th>Estado</th></tr></thead>
+      <tbody>${getCuentasActivas(mes).map(c=>{const paid=!!pagos[`${c.nombre}-${mes}`];const cuota=getCuota(c,mes);return`<tr><td>${c.nombre}</td><td>${cuota}</td><td style="text-align:right">${fmtNum(c.monto)}</td><td style="color:${paid?'#15803d':'#dc2626'}">${paid?'Pagado':'Pendiente'}</td></tr>`}).join('')}
+      <tr style="font-weight:600"><td colspan="2">TOTAL</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS)}</td><td></td></tr>
+      </tbody>
+    </table>`;
+  } else {
+    // Reporte anual
+    html=`
+    <div class="pdf-header">
+      <h1 style="font-size:20px;margin-bottom:4px">Reporte Anual 2026</h1>
+      <div style="font-size:13px;opacity:.8">Generado el ${fecha}</div>
+    </div>`;
+
+    // Resumen anual por mes
+    html+=`<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864">FLUJO MENSUAL 2026</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos Var.</th><th>Cuentas Fijas</th><th>Total Gastos</th><th>Resultado</th></tr></thead>
+      <tbody>`;
+    let totIng=0,totGas=0;
+    for(let m=1;m<=12;m++){
+      const ing=ingresos.filter(i=>new Date(i.fecha).getMonth()+1===m&&i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+      const gas=gastos.filter(g=>new Date(g.fecha).getMonth()+1===m).reduce((s,g)=>s+g.monto,0);
+      const neto=ing-gas-TOTAL_CUENTAS;
+      totIng+=ing;totGas+=gas;
+      html+=`<tr><td>${MESES[m]}</td><td style="text-align:right;color:#15803d">${fmtNum(ing)}</td><td style="text-align:right;color:#dc2626">${fmtNum(gas)}</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS)}</td><td style="text-align:right">${fmtNum(gas+TOTAL_CUENTAS)}</td><td style="text-align:right;color:${neto>=0?'#15803d':'#dc2626'};font-weight:600">${fmtNum(neto)}</td></tr>`;
+    }
+    html+=`<tr style="font-weight:700;background:#f1f3f5"><td>TOTAL</td><td style="text-align:right;color:#15803d">${fmtNum(totIng)}</td><td style="text-align:right;color:#dc2626">${fmtNum(totGas)}</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS*12)}</td><td style="text-align:right">${fmtNum(totGas+TOTAL_CUENTAS*12)}</td><td style="text-align:right;color:${totIng-(totGas+TOTAL_CUENTAS*12)>=0?'#15803d':'#dc2626'}">${fmtNum(totIng-(totGas+TOTAL_CUENTAS*12))}</td></tr></tbody></table>`;
+
+    // Detalle ingresos
+    html+=`<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864;page-break-before:always">DETALLE DE INGRESOS</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Fecha</th><th>Empresa</th><th>Tipo</th><th>Cliente</th><th>Monto (Gs.)</th><th>Estado</th></tr></thead>
+      <tbody>${ingresos.length?ingresos.map(i=>`<tr><td>${i.fecha}</td><td>${i.empresa}</td><td>${i.tipo}</td><td>${i.cliente}</td><td style="text-align:right">${fmtNum(i.monto)}</td><td>${i.estado}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:#9ca3af">Sin ingresos</td></tr>'}</tbody>
+    </table>`;
+
+    // Detalle gastos
+    html+=`<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864">DETALLE DE GASTOS VARIABLES</h3>
+    <table class="pdf-table">
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Medio</th><th>Monto (Gs.)</th></tr></thead>
+      <tbody>${gastos.length?gastos.map(g=>`<tr><td>${g.fecha}</td><td>${g.concepto}</td><td>${g.cat}</td><td>${g.medio}</td><td style="text-align:right">${fmtNum(g.monto)}</td></tr>`).join('')+'<tr style="font-weight:700"><td colspan="4">TOTAL</td><td style="text-align:right">${fmtNum(gastos.reduce((s,g)=>s+g.monto,0))}</td></tr>':'<tr><td colspan="5" style="text-align:center;color:#9ca3af">Sin gastos</td></tr>'}</tbody>
+    </table>`;
+  }
+
+  // Mostrar en ventana de impresión
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Financiero 2026</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:24px;color:#1a1a1a;font-size:12px}
+    .pdf-header{background:#1f3864;color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:16px}
+    .pdf-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+    .pdf-kpi{background:#f1f3f5;border-radius:6px;padding:10px;text-align:center}
+    .pdf-kpi-label{font-size:10px;color:#6b7280;margin-bottom:4px}
+    .pdf-kpi-value{font-size:15px;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px}
+    th{background:#1f3864;color:#fff;padding:6px 8px;text-align:left}
+    td{padding:5px 8px;border-bottom:1px solid #e5e7eb}
+    tr:nth-child(even) td{background:#f8f9fa}
+    h3{font-size:13px;color:#1f3864;margin:16px 0 8px}
+    @media print{body{margin:10px}}
+  </style></head><body>${html}
+  <script>window.onload=function(){window.print()}<\/script>
+  </body></html>`);
+  win.document.close();
+  toast('PDF abierto — usá Ctrl+P para imprimir');
+}
+
+// ── BACKUP JSON ───────────────────────────────────────────────────────────────
+function exportarJSON(){
+  const blob=new Blob([JSON.stringify(getData(),null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='finanzas_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  URL.revokeObjectURL(url);toast('Backup exportado ✓');
+}
+function leerImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{saveData(JSON.parse(ev.target.result));renderDashboard();renderGastos();renderIngresos();renderReportes();toast('Datos importados ✓');}catch{toast('Archivo inválido');}};
+  r.readAsText(f);e.target.value='';
+}
+
+// ── RENDER FUNCIONES ──────────────────────────────────────────────────────────
+function guardarGasto(){
+  const fecha=document.getElementById('g-fecha').value;
+  const concepto=document.getElementById('g-concepto').value.trim();
+  const cat=document.getElementById('g-cat').value;
+  const monto=parseFloat(document.getElementById('g-monto').value)||0;
+  const medio=document.getElementById('g-medio').value;
+  const obs=document.getElementById('g-obs').value.trim();
+  if(!fecha||!concepto||!cat||!monto){toast('Completá todos los campos');return}
+  const d=getData();if(!d.gastos)d.gastos=[];
+  d.gastos.push({id:Date.now(),fecha,concepto,cat,monto,medio,obs});
+  saveData(d);
+  document.getElementById('g-concepto').value='';document.getElementById('g-monto').value='';document.getElementById('g-obs').value='';
+  renderGastos();renderDashboard();toast('Gasto guardado ✓');
+}
+function eliminarGasto(id){
+  if(!confirm('¿Eliminar?'))return;
+  const d=getData();d.gastos=(d.gastos||[]).filter(g=>g.id!==id);saveData(d);renderGastos();renderDashboard();
+}
+let catFiltro='all';
+function filtrarCat(btn,cat){catFiltro=cat;document.querySelectorAll('#page-gastos .filter-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderGastos();}
+function renderGastos(){
+  const mes=document.getElementById('g-filtro-mes').value;
+  let gastos=getGastos();
+  if(mes!=='all')gastos=gastos.filter(g=>new Date(g.fecha).getMonth()+1===parseInt(mes));
+  if(catFiltro!=='all')gastos=gastos.filter(g=>g.cat===catFiltro);
+  gastos=gastos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const el=document.getElementById('g-lista');
+  if(!gastos.length){el.innerHTML='<div class="empty-state"><i class="ti ti-receipt-off"></i><div>Sin gastos</div></div>';return}
+  el.innerHTML=gastos.map(g=>`<div class="item-row">
+    <div class="item-left" style="flex:1;margin-right:8px;min-width:0">
+      <div class="item-icon" style="background:${CAT_COLORS[g.cat]||'#9ca3af'}22;flex-shrink:0">
+        <i class="ti ${CAT_ICONS[g.cat]||'ti-dots'}" style="color:${CAT_COLORS[g.cat]||'#9ca3af'}"></i>
+      </div>
+      <div style="min-width:0">
+        <div class="item-name">${g.concepto}</div>
+        <div class="item-sub">${g.cat} · ${g.fecha.slice(5).replace('-','/')} · ${g.medio}</div>
+        ${g.obs?`<div class="item-sub" style="font-style:italic">${g.obs}</div>`:''}
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div class="item-amount out">${fmt(g.monto)}</div>
+      <button class="btn-danger" onclick="eliminarGasto(${g.id})"><i class="ti ti-trash"></i></button>
+    </div></div>`).join('');
+}
+function togglePago(key){const d=getData();if(!d.pagos)d.pagos={};d.pagos[key]=!d.pagos[key];saveData(d);renderCuentas();renderDashboard();}
+function renderCuentas(){
+  const mes=parseInt(document.getElementById('c-mes-sel').value);
+  const pagos=getPagos();const today=new Date();
+  const activas=getCuentasActivas(mes);
+
+  function renderGrupo(items,elId){
+    const el=document.getElementById(elId);
+    if(!items.length){el.innerHTML='<div style="color:var(--text-success);font-size:13px;padding:8px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check"></i> Sin cuotas pendientes este mes</div>';return}
+    el.innerHTML=items.map(c=>{
+      const cuota=getCuota(c,mes);
+      const key=`${c.nombre}-${mes}`;const paid=!!pagos[key];
+      const venc=c.venc?new Date(2026,mes-1,c.venc):null;
+      const overdue=venc&&!paid&&venc<today;
+      const esUltima=c.cuotaTotal&&cuota===`${c.cuotaTotal}/${c.cuotaTotal}`;
+      return`<div class="cuenta-item">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          <button class="check-btn ${paid?'paid':''}" onclick="togglePago('${key}')">
+            <i class="ti ${paid?'ti-check':'ti-circle'}"></i></button>
+          <div style="min-width:0">
+            <div class="item-name" style="${paid?'text-decoration:line-through;opacity:.45':''}">
+              ${c.nombre}${esUltima?' <span style="font-size:10px;color:var(--text-warning);font-weight:600">· ÚLTIMA CUOTA</span>':''}
+            </div>
+            <div class="item-sub">${cuota}${c.venc?` · vence ${c.venc}/${mes}`:' · sin fecha'}${c.medio?` · ${c.medio}`:''}</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="item-amount" style="color:${paid?'var(--text-success)':overdue?'var(--text-danger)':'var(--text-primary)'}">${fmt(c.monto)}</div>
+          <span class="badge ${paid?'badge-paid':overdue?'badge-overdue':'badge-pending'}">${paid?'Pagado':overdue?'Vencido':'Pendiente'}</span>
+        </div></div>`}).join('');
+  }
+
+  renderGrupo(activas.filter(c=>c.tipo==='cuota'),'c-cuotas');
+  renderGrupo(activas.filter(c=>c.tipo==='servicio'),'c-servicios');
+
+  const totalMes=activas.reduce((s,c)=>s+c.monto,0);
+  const pagadas=activas.filter(c=>!!pagos[`${c.nombre}-${mes}`]).reduce((s,c)=>s+c.monto,0);
+  const pct=totalMes>0?Math.round(pagadas/totalMes*100):0;
+  document.getElementById('c-total').textContent=fmt(totalMes);
+  document.getElementById('c-pagado').textContent=fmt(pagadas);
+  document.getElementById('c-pendiente').textContent=fmt(totalMes-pagadas);
+  document.getElementById('c-progreso').textContent=pct+'%';
+}
+function guardarIngreso(empresa){
+  const pre=empresa==='DiTalento'?'dt':'axo';
+  const fecha=document.getElementById(`${pre}-fecha`).value;
+  const tipo=document.getElementById(`${pre}-tipo`).value;
+  const cliente=document.getElementById(`${pre}-cliente`).value.trim();
+  const monto=parseFloat(document.getElementById(`${pre}-monto`).value)||0;
+  const estado=document.getElementById(`${pre}-estado`).value;
+  const obs=document.getElementById(`${pre}-obs`).value.trim();
+  if(!fecha||!cliente||!monto){toast('Completá fecha, cliente y monto');return}
+  const d=getData();if(!d.ingresos)d.ingresos=[];
+  d.ingresos.push({id:Date.now(),empresa,fecha,tipo,cliente,monto,estado,obs});
+  saveData(d);
+  document.getElementById(`${pre}-cliente`).value='';document.getElementById(`${pre}-monto`).value='';document.getElementById(`${pre}-obs`).value='';
+  renderIngresos();renderDashboard();toast('Ingreso guardado ✓');
+}
+function eliminarIngreso(id){
+  if(!confirm('¿Eliminar?'))return;
+  const d=getData();d.ingresos=(d.ingresos||[]).filter(i=>i.id!==id);saveData(d);renderIngresos();renderDashboard();
+}
+let ingFiltro='all';
+function filtrarIng(btn,f){ingFiltro=f;document.querySelectorAll('#page-ingresos .filter-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderIngresos();}
+let ingTab='ditalento';
+function showIngTab(tab){
+  ingTab=tab;
+  document.getElementById('ing-form-ditalento').style.display=tab==='ditalento'?'block':'none';
+  document.getElementById('ing-form-axo').style.display=tab==='axo'?'block':'none';
+  document.getElementById('ing-tab-ditalento').className='tab-btn'+(tab==='ditalento'?' active':'');
+  document.getElementById('ing-tab-axo').className='tab-btn'+(tab==='axo'?' active':'');
+}
+function renderIngresos(){
+  let ingresos=getIngresos();
+  if(ingFiltro==='DiTalento'||ingFiltro==='Axo')ingresos=ingresos.filter(i=>i.empresa===ingFiltro);
+  else if(ingFiltro==='Cobrado'||ingFiltro==='Pendiente')ingresos=ingresos.filter(i=>i.estado===ingFiltro);
+  ingresos=ingresos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const totalCobrado=getIngresos().filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+  document.getElementById('ing-total-cobrado').textContent=fmt(totalCobrado)+' cobrado';
+  const el=document.getElementById('ing-lista');
+  if(!ingresos.length){el.innerHTML='<div class="empty-state"><i class="ti ti-wallet-off"></i><div>Sin ingresos</div></div>';return}
+  el.innerHTML=ingresos.map(i=>`<div class="item-row">
+    <div class="item-left" style="flex:1;margin-right:8px;min-width:0">
+      <div class="item-icon" style="background:${i.empresa==='DiTalento'?'#3b82f622':'#8b5cf622'};flex-shrink:0">
+        <i class="ti ti-building" style="color:${i.empresa==='DiTalento'?'#3b82f6':'#8b5cf6'}"></i></div>
+      <div style="min-width:0">
+        <div class="item-name">${i.cliente}</div>
+        <div class="item-sub">${i.empresa} · ${i.tipo} · ${i.fecha.slice(5).replace('-','/')}</div>
+        ${i.obs?`<div class="item-sub" style="font-style:italic">${i.obs}</div>`:''}
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div class="item-amount in">${fmt(i.monto)}</div>
+      <span class="badge ${i.estado==='Cobrado'?'badge-paid':i.estado==='Pendiente'?'badge-pending':'badge-overdue'}">${i.estado}</span><br>
+      <button class="btn-danger" onclick="eliminarIngreso(${i.id})" style="margin-top:4px"><i class="ti ti-trash"></i></button>
+    </div></div>`).join('');
+}
+function renderDashboard(){
+  const mes=parseInt(document.getElementById('db-mes-sel').value);
+  document.getElementById('db-mes-title').textContent=MESES[mes]+' 2026';
+  document.getElementById('db-fecha-hoy').textContent='Hoy '+new Date().toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+  const gastos=getGastos().filter(g=>new Date(g.fecha).getMonth()+1===mes);
+  const ingresos=getIngresos().filter(i=>new Date(i.fecha).getMonth()+1===mes&&i.estado==='Cobrado');
+  const pagos=getPagos();
+  const activas=getCuentasActivas(mes);
+  const cuentasPag=activas.filter(c=>!!pagos[`${c.nombre}-${mes}`]).reduce((s,c)=>s+c.monto,0);
+  const totalMesC=activas.reduce((s,c)=>s+c.monto,0);
+  const totalIng=ingresos.reduce((s,i)=>s+i.monto,0);
+  const totalGas=gastos.reduce((s,g)=>s+g.monto,0);
+  const resultado=totalIng-totalGas-cuentasPag;
+  document.getElementById('db-ingresos').textContent=fmt(totalIng);
+  document.getElementById('db-gastos').textContent=fmt(totalGas);
+  document.getElementById('db-cuentas').textContent=fmt(totalMesC);
+  const res=document.getElementById('db-resultado');res.textContent=fmt(resultado);res.className='metric-value '+(resultado>=0?'green':'red');
+  const catTotals={};gastos.forEach(g=>{catTotals[g.cat]=(catTotals[g.cat]||0)+g.monto});
+  const maxCat=Math.max(1,...Object.values(catTotals));
+  document.getElementById('db-categorias').innerHTML=Object.keys(catTotals).length?
+    Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>`<div class="cat-bar">
+      <div class="cat-bar-name">${cat}</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${Math.round(val/maxCat*100)}%;background:${CAT_COLORS[cat]||'#9ca3af'}"></div></div>
+      <div class="cat-bar-val">${fmt(val)}</div></div>`).join(''):
+    '<div style="color:var(--text-secondary);font-size:13px;padding:4px 0">Sin gastos variables este mes</div>';
+  const pendientes=activas.filter(c=>!pagos[`${c.nombre}-${mes}`]);
+  document.getElementById('db-cuentas-estado').innerHTML=!pendientes.length?
+    '<div style="color:var(--text-success);font-size:13px;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check"></i> Todas las cuentas pagadas</div>':
+    `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${pendientes.length} pendiente${pendientes.length>1?'s':''} · ${fmt(pendientes.reduce((s,c)=>s+c.monto,0))}</div>`+
+    pendientes.slice(0,5).map(c=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${c.nombre}${c.venc?` — vence ${c.venc}/${mes}`:''}</span>
+      <span style="color:var(--text-danger);font-weight:600">${fmt(c.monto)}</span></div>`).join('');
+  const todos=[...gastos.map(g=>({...g,_t:'gasto'})),...ingresos.map(i=>({...i,_t:'ingreso'}))]
+    .sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,6);
+  document.getElementById('db-ultimos').innerHTML=todos.length?todos.map(t=>`<div class="item-row">
+    <div class="item-left">
+      <div class="item-icon" style="background:${t._t==='ingreso'?'#22c55e22':'#ef444422'}">
+        <i class="ti ${t._t==='ingreso'?'ti-arrow-down-circle':'ti-arrow-up-circle'}" style="color:${t._t==='ingreso'?'#22c55e':'#ef4444'}"></i></div>
+      <div><div class="item-name">${t.concepto||t.cliente}</div>
+        <div class="item-sub">${t.cat||t.empresa} · ${t.fecha.slice(5).replace('-','/')}</div></div>
+    </div>
+    <div class="item-amount ${t._t==='ingreso'?'in':'out'}">${fmt(t.monto)}</div></div>`).join(''):
+    '<div class="empty-state" style="padding:16px 0"><i class="ti ti-clock"></i><div>Sin movimientos</div></div>';
+}
+let flujoChart=null;
+function renderReportes(){
+  const gastos=getGastos();const ingresos=getIngresos();
+  const totalIng=ingresos.filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
+  const totalGas=gastos.reduce((s,g)=>s+g.monto,0);
+  document.getElementById('rep-ing').textContent=fmt(totalIng);
+  document.getElementById('rep-gas').textContent=fmt(totalGas);
+  const neto=totalIng-totalGas;
+  const netoEl=document.getElementById('rep-neto');netoEl.textContent=fmt(neto);netoEl.className='metric-value '+(neto>=0?'green':'red');
+  const empTotals={'DiTalento':0,'Axo':0};
+  ingresos.filter(i=>i.estado==='Cobrado').forEach(i=>empTotals[i.empresa]=(empTotals[i.empresa]||0)+i.monto);
+  document.getElementById('rep-empresas').innerHTML=Object.entries(empTotals).map(([e,v])=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="font-weight:500">${e}</span><span class="item-amount in">${fmt(v)}</span></div>`).join('');
+  const dtTipos={};
+  ingresos.filter(i=>i.empresa==='DiTalento'&&i.estado==='Cobrado').forEach(i=>dtTipos[i.tipo]=(dtTipos[i.tipo]||0)+i.monto);
+  const maxDT=Math.max(1,...Object.values(dtTipos));
+  document.getElementById('rep-dt-tipos').innerHTML=Object.keys(dtTipos).length?
+    Object.entries(dtTipos).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`<div class="cat-bar">
+      <div class="cat-bar-name">${t}</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${Math.round(v/maxDT*100)}%;background:#3b82f6"></div></div>
+      <div class="cat-bar-val">${fmt(v)}</div></div>`).join(''):
+    '<div style="color:var(--text-secondary);font-size:13px">Sin cobros DiTalento</div>';
+  const catTotals={};gastos.forEach(g=>catTotals[g.cat]=(catTotals[g.cat]||0)+g.monto);
+  const maxC=Math.max(1,...Object.values(catTotals));
+  document.getElementById('rep-cats').innerHTML=Object.keys(catTotals).length?
+    Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>`<div class="cat-bar">
+      <div class="cat-bar-name">${cat}</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${Math.round(val/maxC*100)}%;background:${CAT_COLORS[cat]||'#9ca3af'}"></div></div>
+      <div class="cat-bar-val">${fmt(val)}</div></div>`).join(''):
+    '<div style="color:var(--text-secondary);font-size:13px">Sin gastos</div>';
+  const labels=[];const dI=[];const dG=[];
+  for(let m=6;m<=12;m++){
+    const i=ingresos.filter(x=>new Date(x.fecha).getMonth()+1===m&&x.estado==='Cobrado').reduce((s,x)=>s+x.monto,0);
+    const g=gastos.filter(x=>new Date(x.fecha).getMonth()+1===m).reduce((s,x)=>s+x.monto,0);
+    labels.push(MESES[m].slice(0,3));dI.push(Math.round(i/1000));dG.push(Math.round(g/1000));
+  }
+  if(flujoChart)flujoChart.destroy();
+  const dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  flujoChart=new Chart(document.getElementById('chart-flujo'),{type:'bar',
+    data:{labels,datasets:[{label:'Ingresos',data:dI,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1.5},
+      {label:'Gastos',data:dG,backgroundColor:'#ef444499',borderColor:'#ef4444',borderWidth:1.5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:dark?'#9ca3af':'#6b7280',font:{size:11}},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:dark?'#9ca3af':'#6b7280',font:{size:10}},grid:{color:dark?'#374151':'#f1f3f5'},border:{display:false}}}}});
+}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='gastos')renderGastos();
+  if(id==='cuentas')renderCuentas();
+  if(id==='ingresos')renderIngresos();
+  if(id==='reportes')renderReportes();
+  window.scrollTo(0,0);
+}
+const hoy=new Date().toISOString().slice(0,10);
+['g-fecha','dt-fecha','axo-fecha'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoy});
+renderDashboard();
+</script>
+</body>
+</html>

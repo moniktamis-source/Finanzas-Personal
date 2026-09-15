@@ -90,6 +90,27 @@ select.month-sel{font-size:13px;padding:7px 10px;border:1px solid var(--border-m
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:var(--radius-md);font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 .export-section-title{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+/* --- Cuentas: acciones, modales, canceladas --- */
+.btn-add{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--text-info);border-radius:var(--radius-md);background:var(--bg-info);color:var(--text-info);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.acc-menu{width:28px;height:28px;border-radius:50%;border:none;background:none;color:var(--text-secondary);cursor:pointer;flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center}
+.acc-menu:hover{background:var(--bg-secondary)}
+.cuenta-wrap{border-bottom:1px solid var(--border)}
+.cuenta-wrap:last-child{border-bottom:none}
+.cuenta-wrap .cuenta-item{border-bottom:none}
+.acc-actions{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px 40px}
+.acc-actions[hidden]{display:none}
+.acc-actions button{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border-md);border-radius:var(--radius-md);background:var(--bg-secondary);color:var(--text-secondary);font-size:11px;cursor:pointer}
+.acc-actions button.danger{border-color:var(--text-danger);color:var(--text-danger)}
+.badge-adelanto{background:var(--bg-info);color:var(--text-info)}
+.badge-cancel{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border-md)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.modal-bg[hidden]{display:none}
+.modal{background:var(--bg-primary);width:100%;max-width:480px;max-height:92vh;overflow-y:auto;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;padding:11px;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border-md);background:none;color:var(--text-secondary)}
+.modal-actions button.primary{background:var(--bg-info);color:var(--text-info);border-color:var(--bg-info)}
+.modal-hint{font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.45}
 /* PDF print styles */
 @media print{
   .nav,.no-print{display:none!important}
@@ -218,8 +239,10 @@ select.month-sel{font-size:13px;padding:7px 10px;border:1px solid var(--border-m
       <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value red" id="c-pendiente">Gs. 0</div></div>
       <div class="metric"><div class="metric-label">Progreso</div><div class="metric-value" id="c-progreso">0%</div></div>
     </div>
+    <button class="btn-primary" style="margin-bottom:12px" onclick="abrirModalCuenta()"><i class="ti ti-plus"></i> Nueva cuenta</button>
     <div class="card"><div class="section-title">Cuotas financieras</div><div id="c-cuotas"></div></div>
     <div class="card"><div class="section-title">Servicios fijos</div><div id="c-servicios"></div></div>
+    <div class="card" id="c-card-canceladas" hidden><div class="section-title">Canceladas / saldadas</div><div id="c-canceladas"></div></div>
   </main>
 
   <!-- INGRESOS -->
@@ -319,6 +342,93 @@ select.month-sel{font-size:13px;padding:7px 10px;border:1px solid var(--border-m
 <!-- PDF REPORT (oculto, solo para print) -->
 <div id="pdf-report"></div>
 
+<!-- ── MODAL: nueva / editar cuenta ────────────────────────────────── -->
+<div class="modal-bg" id="modal-cuenta" hidden onclick="if(event.target===this)cerrarModales()">
+  <div class="modal">
+    <div class="modal-title" id="mc-title">Nueva cuenta</div>
+    <div class="form-row">
+      <label class="form-label">Nombre</label>
+      <input id="mc-nombre" placeholder="Ej. Seguro del auto">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Tipo</label>
+      <select id="mc-tipo" onchange="toggleCamposCuota()">
+        <option value="servicio">Servicio fijo (monto todos los meses)</option>
+        <option value="cuota">Cuota financiera (préstamo con N cuotas)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Monto mensual (Gs.)</label>
+      <input id="mc-monto" type="number" inputmode="numeric" placeholder="0">
+    </div>
+    <div id="mc-campos-cuota" hidden>
+      <div class="form-row">
+        <label class="form-label">Nº de cuota que pagás en <span id="mc-mes-label">este mes</span></label>
+        <input id="mc-cuotabase" type="number" inputmode="numeric" placeholder="Ej. 3">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Total de cuotas</label>
+        <input id="mc-cuotatotal" type="number" inputmode="numeric" placeholder="Ej. 24">
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Día de vencimiento (opcional)</label>
+      <input id="mc-venc" type="number" inputmode="numeric" min="1" max="31" placeholder="Ej. 15">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Medio de pago</label>
+      <input id="mc-medio" list="medios-list" placeholder="Ej. Solar cuenta">
+      <datalist id="medios-list">
+        <option>Efectivo</option><option>Ueno Mama</option><option>Solar cuenta</option>
+        <option>Itaú Mama</option><option>Transferencia</option><option>Tarjeta</option>
+      </datalist>
+    </div>
+    <div class="modal-actions">
+      <button onclick="cerrarModales()">Cancelar</button>
+      <button class="primary" onclick="guardarCuenta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: adelantar cuotas ─────────────────────────────────────── -->
+<div class="modal-bg" id="modal-adelanto" hidden onclick="if(event.target===this)cerrarModales()">
+  <div class="modal">
+    <div class="modal-title">Cuotas adelantadas</div>
+    <div id="ma-info" class="modal-hint" style="margin-bottom:12px"></div>
+    <div class="form-row">
+      <label class="form-label">¿Cuántas cuotas pagaste por adelantado?</label>
+      <input id="ma-cant" type="number" inputmode="numeric" min="1" value="1">
+    </div>
+    <p class="modal-hint">Se marcan como pagadas las cuotas de los meses siguientes al mes seleccionado. Si con eso cubrís todas las cuotas, la cuenta se marca como CANCELADA automáticamente.</p>
+    <div class="modal-actions">
+      <button onclick="cerrarModales()">Cancelar</button>
+      <button class="primary" onclick="guardarAdelanto()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: cancelar cuenta ──────────────────────────────────────── -->
+<div class="modal-bg" id="modal-cancel" hidden onclick="if(event.target===this)cerrarModales()">
+  <div class="modal">
+    <div class="modal-title">Cancelar cuenta</div>
+    <div id="mx-info" class="modal-hint" style="margin-bottom:12px"></div>
+    <div class="form-row">
+      <label class="form-label">Dejar de cobrarla a partir de</label>
+      <select id="mx-mes">
+        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </div>
+    <p class="modal-hint">La cuenta sale del listado y de los totales desde ese mes en adelante, y queda guardada en "Canceladas / saldadas" por si querés reactivarla.</p>
+    <div class="modal-actions">
+      <button onclick="cerrarModales()">Volver</button>
+      <button class="primary" onclick="guardarCancelacion()">Marcar cancelada</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -328,39 +438,65 @@ const MESES=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto
 const CAT_COLORS={'Alimentación':'#3b82f6','Transporte':'#f59e0b','Salud':'#ef4444','Educación':'#8b5cf6','Hogar':'#6b7280','Entretenimiento':'#ec4899','Ropa/Calzado':'#14b8a6','Servicios':'#3266ad','Otros':'#9ca3af'};
 const CAT_ICONS={'Alimentación':'ti-tools-kitchen-2','Transporte':'ti-car','Salud':'ti-heart-rate-monitor','Educación':'ti-book','Hogar':'ti-home','Entretenimiento':'ti-device-tv','Ropa/Calzado':'ti-shirt','Servicios':'ti-bolt','Otros':'ti-dots'};
 
-// cuotaBase = cuota en Junio 2026 (mes 6), total = total de cuotas
-// La cuota de cualquier mes = cuotaBase + (mes - 6)
-const CUENTAS_FIJAS=[
-  {nombre:'Credi Agil',monto:1670000,cuotaBase:13,cuotaTotal:24,venc:15,tipo:'cuota',medio:'Solar cuenta'},
-  {nombre:'TU Financiera',monto:1265000,cuotaBase:6,cuotaTotal:12,venc:12,tipo:'cuota',medio:'Ueno Mama'},
-  {nombre:'SOLAR',monto:840000,cuotaBase:5,cuotaTotal:36,venc:25,tipo:'cuota',medio:'Solar cuenta'},
-  {nombre:'PINOZA',monto:450000,cuotaBase:16,cuotaTotal:24,venc:15,tipo:'cuota',medio:'Itaú Mama'},
-  {nombre:'ANDE',monto:300000,cuotaBase:null,cuotaTotal:null,venc:10,tipo:'servicio',medio:'Solar cuenta'},
-  {nombre:'FLOW',monto:220000,cuotaBase:null,cuotaTotal:null,venc:10,tipo:'servicio',medio:'Solar cuenta'},
-  {nombre:'Telefonía',monto:150000,cuotaBase:null,cuotaTotal:null,venc:13,tipo:'servicio',medio:'Solar cuenta'},
-  {nombre:'Prosegur',monto:220000,cuotaBase:null,cuotaTotal:null,venc:11,tipo:'servicio',medio:''},
-  {nombre:'Contador',monto:250000,cuotaBase:null,cuotaTotal:null,venc:18,tipo:'servicio',medio:''},
-  {nombre:'Santa Clara',monto:255000,cuotaBase:null,cuotaTotal:null,venc:12,tipo:'servicio',medio:''},
-  {nombre:'GYM',monto:160000,cuotaBase:null,cuotaTotal:null,venc:16,tipo:'servicio',medio:''},
-  {nombre:'Lipoles',monto:480000,cuotaBase:null,cuotaTotal:null,venc:5,tipo:'servicio',medio:''},
-  {nombre:'AQUAMAQ',monto:110000,cuotaBase:null,cuotaTotal:null,venc:null,tipo:'servicio',medio:''},
+// ── CUENTAS FIJAS (editables desde la app) ───────────────────────────────────
+// cuotaBase = Nº de cuota que corresponde al mes base (mesBase). Junio 2026 = mes 6.
+// La cuota de cualquier mes = cuotaBase + (mes - mesBase)
+// La primera vez se cargan estas cuentas semilla; después se editan desde la app.
+const SEED_CUENTAS=[
+  {id:'s01',nombre:'Credi Agil',monto:1670000,cuotaBase:13,cuotaTotal:24,mesBase:6,venc:15,tipo:'cuota',medio:'Solar cuenta'},
+  {id:'s02',nombre:'TU Financiera',monto:1265000,cuotaBase:6,cuotaTotal:12,mesBase:6,venc:12,tipo:'cuota',medio:'Ueno Mama'},
+  {id:'s03',nombre:'SOLAR',monto:840000,cuotaBase:5,cuotaTotal:36,mesBase:6,venc:25,tipo:'cuota',medio:'Solar cuenta'},
+  {id:'s04',nombre:'PINOZA',monto:450000,cuotaBase:16,cuotaTotal:24,mesBase:6,venc:15,tipo:'cuota',medio:'Itaú Mama'},
+  {id:'s05',nombre:'ANDE',monto:300000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:10,tipo:'servicio',medio:'Solar cuenta'},
+  {id:'s06',nombre:'FLOW',monto:220000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:10,tipo:'servicio',medio:'Solar cuenta'},
+  {id:'s07',nombre:'Telefonía',monto:150000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:13,tipo:'servicio',medio:'Solar cuenta'},
+  {id:'s08',nombre:'Prosegur',monto:220000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:11,tipo:'servicio',medio:''},
+  {id:'s09',nombre:'Contador',monto:250000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:18,tipo:'servicio',medio:''},
+  {id:'s10',nombre:'Santa Clara',monto:255000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:12,tipo:'servicio',medio:''},
+  {id:'s11',nombre:'GYM',monto:160000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:16,tipo:'servicio',medio:''},
+  {id:'s12',nombre:'Lipoles',monto:480000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:5,tipo:'servicio',medio:''},
+  {id:'s13',nombre:'AQUAMAQ',monto:110000,cuotaBase:null,cuotaTotal:null,mesBase:6,venc:null,tipo:'servicio',medio:''},
 ];
-const TOTAL_CUENTAS=CUENTAS_FIJAS.reduce((s,c)=>s+c.monto,0);
+
+// Devuelve las cuentas guardadas; la primera vez siembra las de arriba.
+function getCuentas(){
+  const d=getData();
+  if(!Array.isArray(d.cuentas)){
+    d.cuentas=SEED_CUENTAS.map(c=>({...c}));
+    saveData(d);
+    return d.cuentas;
+  }
+  return d.cuentas;
+}
+function saveCuentas(arr){const d=getData();d.cuentas=arr;saveData(d);}
+function getCuentaById(id){return getCuentas().find(c=>c.id===id)||null}
+function nuevoIdCuenta(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 
 // Calcula la etiqueta de cuota para un mes dado (mes = 1-12)
-// Junio = mes 6 es la base. Si la cuota ya se terminó, retorna null (se oculta)
+// Si la cuota ya se terminó o todavía no empezó, retorna null (se oculta)
 function getCuota(c, mes){
-  if(c.cuotaBase===null) return 'fijo';
-  const cuotaMes = c.cuotaBase + (mes - 6);
+  if(c.cuotaBase===null||c.cuotaBase===undefined) return 'fijo';
+  const base=c.mesBase||6;
+  const cuotaMes = c.cuotaBase + (mes - base);
   if(cuotaMes > c.cuotaTotal) return null; // cuota terminada
-  if(cuotaMes < 1) return null; // aún no empezó
+  if(cuotaMes < 1) return null;            // aún no empezó
   return `${cuotaMes}/${c.cuotaTotal}`;
 }
-
-// Filtra cuentas activas para un mes dado (excluye cuotas terminadas)
-function getCuentasActivas(mes){
-  return CUENTAS_FIJAS.filter(c => getCuota(c, mes) !== null);
+function nroCuota(c,mes){
+  if(c.cuotaBase===null||c.cuotaBase===undefined) return null;
+  return c.cuotaBase + (mes - (c.mesBase||6));
 }
+function estaCancelada(c,mes){return !!c.cancelada && mes >= (c.cancelDesde||1)}
+
+// Filtra cuentas activas para un mes dado (excluye cuotas terminadas y canceladas)
+function getCuentasActivas(mes){
+  return getCuentas().filter(c => !estaCancelada(c,mes) && getCuota(c, mes) !== null);
+}
+function getCuentasCanceladas(mes){
+  return getCuentas().filter(c => estaCancelada(c,mes));
+}
+function totalCuentasMes(mes){return getCuentasActivas(mes).reduce((s,c)=>s+c.monto,0)}
+function getAdelantos(){return getData().adelantos||{}}
 
 function getData(){try{return JSON.parse(localStorage.getItem('finData2026')||'{}')}catch{return{}}}
 function saveData(d){localStorage.setItem('finData2026',JSON.stringify(d))}
@@ -402,8 +538,10 @@ function exportExcel(tipo){
   // Hoja Cuentas Fijas
   if(tipo==='completo'){
     const rowsCF=[['Concepto','Tipo','Cuota','Monto (Gs.)','Día Vencimiento','Medio de Pago']];
-    CUENTAS_FIJAS.forEach(c=>rowsCF.push([c.nombre,c.tipo,getCuota(c,6),c.monto,c.venc||'Sin fecha',c.medio]));
-    rowsCF.push(['TOTAL','','',TOTAL_CUENTAS,'','']);
+    const mesRef=parseInt((document.getElementById('c-mes-sel')||{}).value)||6;
+    getCuentasActivas(mesRef).forEach(c=>rowsCF.push([c.nombre,c.tipo,getCuota(c,mesRef),c.monto,c.venc||'Sin fecha',c.medio]));
+    rowsCF.push(['TOTAL','','',totalCuentasMes(mesRef),'','']);
+    getCuentasCanceladas(mesRef).forEach(c=>rowsCF.push([c.nombre,c.tipo,'CANCELADA',0,'','']));
     const wsCF=XLSX.utils.aoa_to_sheet(rowsCF);
     wsCF['!cols']=[{wch:18},{wch:12},{wch:10},{wch:14},{wch:16},{wch:16}];
     XLSX.utils.book_append_sheet(wb,wsCF,'Cuentas Fijas');
@@ -413,12 +551,13 @@ function exportExcel(tipo){
     for(let m=1;m<=12;m++){
       const ing=ingresos.filter(i=>new Date(i.fecha).getMonth()+1===m&&i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
       const gas=gastos.filter(g=>new Date(g.fecha).getMonth()+1===m).reduce((s,g)=>s+g.monto,0);
-      const cf=TOTAL_CUENTAS;
+      const cf=totalCuentasMes(m);
       rowsRes.push([MESES[m],ing,gas,cf,gas+cf,ing-(gas+cf)]);
     }
     const totIng=ingresos.filter(i=>i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
     const totGas=gastos.reduce((s,g)=>s+g.monto,0);
-    rowsRes.push(['TOTAL ANUAL',totIng,totGas,TOTAL_CUENTAS*12,totGas+TOTAL_CUENTAS*12,totIng-(totGas+TOTAL_CUENTAS*12)]);
+    let totCF=0;for(let m=1;m<=12;m++)totCF+=totalCuentasMes(m);
+    rowsRes.push(['TOTAL ANUAL',totIng,totGas,totCF,totGas+totCF,totIng-(totGas+totCF)]);
     const wsRes=XLSX.utils.aoa_to_sheet(rowsRes);
     wsRes['!cols']=[{wch:14},{wch:18},{wch:18},{wch:14},{wch:16},{wch:16}];
     XLSX.utils.book_append_sheet(wb,wsRes,'Resumen Mensual');
@@ -486,7 +625,7 @@ function exportPDF(modo){
     <table class="pdf-table">
       <thead><tr><th>Concepto</th><th>Cuota</th><th>Monto (Gs.)</th><th>Estado</th></tr></thead>
       <tbody>${getCuentasActivas(mes).map(c=>{const paid=!!pagos[`${c.nombre}-${mes}`];const cuota=getCuota(c,mes);return`<tr><td>${c.nombre}</td><td>${cuota}</td><td style="text-align:right">${fmtNum(c.monto)}</td><td style="color:${paid?'#15803d':'#dc2626'}">${paid?'Pagado':'Pendiente'}</td></tr>`}).join('')}
-      <tr style="font-weight:600"><td colspan="2">TOTAL</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS)}</td><td></td></tr>
+      <tr style="font-weight:600"><td colspan="2">TOTAL</td><td style="text-align:right">${fmtNum(totalCuentasMes(mes))}</td><td></td></tr>
       </tbody>
     </table>`;
   } else {
@@ -502,15 +641,16 @@ function exportPDF(modo){
     <table class="pdf-table">
       <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos Var.</th><th>Cuentas Fijas</th><th>Total Gastos</th><th>Resultado</th></tr></thead>
       <tbody>`;
-    let totIng=0,totGas=0;
+    let totIng=0,totGas=0,totCF=0;
     for(let m=1;m<=12;m++){
       const ing=ingresos.filter(i=>new Date(i.fecha).getMonth()+1===m&&i.estado==='Cobrado').reduce((s,i)=>s+i.monto,0);
       const gas=gastos.filter(g=>new Date(g.fecha).getMonth()+1===m).reduce((s,g)=>s+g.monto,0);
-      const neto=ing-gas-TOTAL_CUENTAS;
-      totIng+=ing;totGas+=gas;
-      html+=`<tr><td>${MESES[m]}</td><td style="text-align:right;color:#15803d">${fmtNum(ing)}</td><td style="text-align:right;color:#dc2626">${fmtNum(gas)}</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS)}</td><td style="text-align:right">${fmtNum(gas+TOTAL_CUENTAS)}</td><td style="text-align:right;color:${neto>=0?'#15803d':'#dc2626'};font-weight:600">${fmtNum(neto)}</td></tr>`;
+      const cf=totalCuentasMes(m);
+      const neto=ing-gas-cf;
+      totIng+=ing;totGas+=gas;totCF+=cf;
+      html+=`<tr><td>${MESES[m]}</td><td style="text-align:right;color:#15803d">${fmtNum(ing)}</td><td style="text-align:right;color:#dc2626">${fmtNum(gas)}</td><td style="text-align:right">${fmtNum(cf)}</td><td style="text-align:right">${fmtNum(gas+cf)}</td><td style="text-align:right;color:${neto>=0?'#15803d':'#dc2626'};font-weight:600">${fmtNum(neto)}</td></tr>`;
     }
-    html+=`<tr style="font-weight:700;background:#f1f3f5"><td>TOTAL</td><td style="text-align:right;color:#15803d">${fmtNum(totIng)}</td><td style="text-align:right;color:#dc2626">${fmtNum(totGas)}</td><td style="text-align:right">${fmtNum(TOTAL_CUENTAS*12)}</td><td style="text-align:right">${fmtNum(totGas+TOTAL_CUENTAS*12)}</td><td style="text-align:right;color:${totIng-(totGas+TOTAL_CUENTAS*12)>=0?'#15803d':'#dc2626'}">${fmtNum(totIng-(totGas+TOTAL_CUENTAS*12))}</td></tr></tbody></table>`;
+    html+=`<tr style="font-weight:700;background:#f1f3f5"><td>TOTAL</td><td style="text-align:right;color:#15803d">${fmtNum(totIng)}</td><td style="text-align:right;color:#dc2626">${fmtNum(totGas)}</td><td style="text-align:right">${fmtNum(totCF)}</td><td style="text-align:right">${fmtNum(totGas+totCF)}</td><td style="text-align:right;color:${totIng-(totGas+totCF)>=0?'#15803d':'#dc2626'}">${fmtNum(totIng-(totGas+totCF))}</td></tr></tbody></table>`;
 
     // Detalle ingresos
     html+=`<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px;color:#1f3864;page-break-before:always">DETALLE DE INGRESOS</h3>
@@ -560,7 +700,7 @@ function exportarJSON(){
 function leerImport(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=ev=>{try{saveData(JSON.parse(ev.target.result));renderDashboard();renderGastos();renderIngresos();renderReportes();toast('Datos importados ✓');}catch{toast('Archivo inválido');}};
+  r.onload=ev=>{try{saveData(JSON.parse(ev.target.result));renderDashboard();renderGastos();renderCuentas();renderIngresos();renderReportes();toast('Datos importados ✓');}catch{toast('Archivo inválido');}};
   r.readAsText(f);e.target.value='';
 }
 
@@ -609,10 +749,170 @@ function renderGastos(){
       <button class="btn-danger" onclick="eliminarGasto(${g.id})"><i class="ti ti-trash"></i></button>
     </div></div>`).join('');
 }
-function togglePago(key){const d=getData();if(!d.pagos)d.pagos={};d.pagos[key]=!d.pagos[key];saveData(d);renderCuentas();renderDashboard();}
+function togglePago(key){
+  const d=getData();
+  if(!d.pagos)d.pagos={};
+  if(!d.adelantos)d.adelantos={};
+  d.pagos[key]=!d.pagos[key];
+  if(!d.pagos[key])delete d.adelantos[key];
+  saveData(d);renderCuentas();renderDashboard();
+}
+
+// ── CUENTAS: alta / edición / baja ───────────────────────────────────────────
+let cuentaEditandoId=null, cuentaAccionId=null;
+
+function mesSel(){return parseInt(document.getElementById('c-mes-sel').value)||6}
+function cerrarModales(){
+  ['modal-cuenta','modal-adelanto','modal-cancel'].forEach(id=>document.getElementById(id).hidden=true);
+  cuentaEditandoId=null;cuentaAccionId=null;
+}
+function toggleCamposCuota(){
+  document.getElementById('mc-campos-cuota').hidden = document.getElementById('mc-tipo').value!=='cuota';
+}
+function toggleAcciones(id){
+  const el=document.getElementById('acc-'+id);
+  if(el)el.hidden=!el.hidden;
+}
+function abrirModalCuenta(id){
+  const mes=mesSel();
+  cuentaEditandoId=id||null;
+  const c=id?getCuentaById(id):null;
+  document.getElementById('mc-title').textContent=c?'Editar cuenta':'Nueva cuenta';
+  document.getElementById('mc-mes-label').textContent=MESES[mes];
+  document.getElementById('mc-nombre').value=c?c.nombre:'';
+  document.getElementById('mc-tipo').value=c?c.tipo:'servicio';
+  document.getElementById('mc-monto').value=c?c.monto:'';
+  document.getElementById('mc-cuotabase').value=c&&c.cuotaBase!==null&&c.cuotaBase!==undefined?nroCuota(c,mes):'';
+  document.getElementById('mc-cuotatotal').value=c&&c.cuotaTotal?c.cuotaTotal:'';
+  document.getElementById('mc-venc').value=c&&c.venc?c.venc:'';
+  document.getElementById('mc-medio').value=c?(c.medio||''):'';
+  toggleCamposCuota();
+  document.getElementById('modal-cuenta').hidden=false;
+}
+function guardarCuenta(){
+  const mes=mesSel();
+  const nombre=document.getElementById('mc-nombre').value.trim();
+  const tipo=document.getElementById('mc-tipo').value;
+  const monto=parseFloat(document.getElementById('mc-monto').value)||0;
+  const venc=parseInt(document.getElementById('mc-venc').value)||null;
+  const medio=document.getElementById('mc-medio').value.trim();
+  const cuotaBase=tipo==='cuota'?(parseInt(document.getElementById('mc-cuotabase').value)||0):null;
+  const cuotaTotal=tipo==='cuota'?(parseInt(document.getElementById('mc-cuotatotal').value)||0):null;
+  if(!nombre||!monto){toast('Poné nombre y monto');return}
+  if(tipo==='cuota'&&(!cuotaBase||!cuotaTotal)){toast('Completá Nº de cuota y total');return}
+  if(tipo==='cuota'&&cuotaBase>cuotaTotal){toast('La cuota actual no puede superar el total');return}
+  const cuentas=getCuentas();
+  const dup=cuentas.find(c=>c.nombre.toLowerCase()===nombre.toLowerCase()&&c.id!==cuentaEditandoId);
+  if(dup){toast('Ya existe una cuenta con ese nombre');return}
+  if(cuentaEditandoId){
+    const c=cuentas.find(x=>x.id===cuentaEditandoId);
+    if(!c){cerrarModales();return}
+    const nombreViejo=c.nombre;
+    Object.assign(c,{nombre,tipo,monto,venc,medio,cuotaBase,cuotaTotal,mesBase:tipo==='cuota'?mes:(c.mesBase||6)});
+    if(nombreViejo!==nombre)migrarPagos(nombreViejo,nombre);
+    saveCuentas(cuentas);toast('Cuenta actualizada ✓');
+  }else{
+    cuentas.push({id:nuevoIdCuenta(),nombre,tipo,monto,venc,medio,cuotaBase,cuotaTotal,mesBase:mes,cancelada:false,cancelDesde:null});
+    saveCuentas(cuentas);toast('Cuenta agregada ✓');
+  }
+  cerrarModales();renderCuentas();renderDashboard();
+}
+// Si cambia el nombre, se conservan los pagos ya marcados
+function migrarPagos(viejo,nuevo){
+  const d=getData();
+  ['pagos','adelantos'].forEach(k=>{
+    if(!d[k])return;
+    Object.keys(d[k]).forEach(key=>{
+      const mes=key.slice(key.lastIndexOf('-')+1);
+      if(key.slice(0,key.lastIndexOf('-'))===viejo){d[k][`${nuevo}-${mes}`]=d[k][key];delete d[k][key];}
+    });
+  });
+  saveData(d);
+}
+function eliminarCuenta(id){
+  const c=getCuentaById(id);if(!c)return;
+  if(!confirm(`¿Eliminar "${c.nombre}" del sistema? Se borran también sus pagos marcados.`))return;
+  saveCuentas(getCuentas().filter(x=>x.id!==id));
+  const d=getData();
+  ['pagos','adelantos'].forEach(k=>{
+    if(!d[k])return;
+    Object.keys(d[k]).forEach(key=>{if(key.slice(0,key.lastIndexOf('-'))===c.nombre)delete d[k][key]});
+  });
+  saveData(d);
+  toast('Cuenta eliminada');renderCuentas();renderDashboard();
+}
+
+// ── Cancelar / reactivar ─────────────────────────────────────────────────────
+function abrirModalCancelar(id){
+  const c=getCuentaById(id);if(!c)return;
+  cuentaAccionId=id;
+  const mes=mesSel();
+  document.getElementById('mx-info').innerHTML=`<strong>${c.nombre}</strong> — ${fmt(c.monto)} por mes${c.cuotaTotal?` · cuota ${getCuota(c,mes)||'—'}`:''}`;
+  document.getElementById('mx-mes').value=mes;
+  document.getElementById('modal-cancel').hidden=false;
+}
+function guardarCancelacion(){
+  const c=getCuentaById(cuentaAccionId);if(!c){cerrarModales();return}
+  const desde=parseInt(document.getElementById('mx-mes').value)||mesSel();
+  const cuentas=getCuentas();
+  const t=cuentas.find(x=>x.id===c.id);
+  t.cancelada=true;t.cancelDesde=desde;
+  saveCuentas(cuentas);
+  cerrarModales();toast(`${t.nombre} cancelada desde ${MESES[desde]} ✓`);
+  renderCuentas();renderDashboard();
+}
+function reactivarCuenta(id){
+  const cuentas=getCuentas();
+  const c=cuentas.find(x=>x.id===id);if(!c)return;
+  c.cancelada=false;c.cancelDesde=null;
+  saveCuentas(cuentas);toast(`${c.nombre} reactivada ✓`);
+  renderCuentas();renderDashboard();
+}
+
+// ── Cuotas adelantadas ───────────────────────────────────────────────────────
+function abrirModalAdelanto(id){
+  const c=getCuentaById(id);if(!c)return;
+  cuentaAccionId=id;
+  const mes=mesSel();
+  const restantes=c.cuotaTotal?c.cuotaTotal-(nroCuota(c,mes)||0):0;
+  document.getElementById('ma-info').innerHTML=`<strong>${c.nombre}</strong> — cuota ${getCuota(c,mes)||'—'} en ${MESES[mes]}. Le quedan <strong>${restantes}</strong> cuotas después de este mes.`;
+  const inp=document.getElementById('ma-cant');
+  inp.value=1;inp.max=Math.max(1,restantes);
+  document.getElementById('modal-adelanto').hidden=false;
+}
+function guardarAdelanto(){
+  const c=getCuentaById(cuentaAccionId);if(!c){cerrarModales();return}
+  let cant=parseInt(document.getElementById('ma-cant').value)||0;
+  if(cant<1){toast('Indicá cuántas cuotas');return}
+  const mes=mesSel();
+  const d=getData();
+  if(!d.pagos)d.pagos={};
+  if(!d.adelantos)d.adelantos={};
+  let marcadas=0,ultimoMes=mes,ultimaCuota=nroCuota(c,mes)||0;
+  for(let m=mes+1;m<=12&&marcadas<cant;m++){
+    if(getCuota(c,m)===null)break;
+    d.pagos[`${c.nombre}-${m}`]=true;
+    d.adelantos[`${c.nombre}-${m}`]=true;
+    marcadas++;ultimoMes=m;ultimaCuota=nroCuota(c,m);
+  }
+  saveData(d);
+  let msg=`${marcadas} cuota${marcadas===1?'':'s'} adelantada${marcadas===1?'':'s'} ✓`;
+  if(marcadas<cant)msg+=' (tope: diciembre)';
+  // Si con el adelanto se cubren todas las cuotas, se cancela sola
+  if(c.cuotaTotal&&ultimaCuota>=c.cuotaTotal){
+    const cuentas=getCuentas();
+    const t=cuentas.find(x=>x.id===c.id);
+    t.cancelada=true;t.cancelDesde=ultimoMes+1;
+    saveCuentas(cuentas);
+    msg=`Préstamo saldado — ${c.nombre} queda CANCELADA desde ${MESES[ultimoMes+1]||'el próximo año'}`;
+  }
+  cerrarModales();toast(msg,3200);renderCuentas();renderDashboard();
+}
+
+// ── RENDER CUENTAS ───────────────────────────────────────────────────────────
 function renderCuentas(){
-  const mes=parseInt(document.getElementById('c-mes-sel').value);
-  const pagos=getPagos();const today=new Date();
+  const mes=mesSel();
+  const pagos=getPagos();const adel=getAdelantos();const today=new Date();
   const activas=getCuentasActivas(mes);
 
   function renderGrupo(items,elId){
@@ -620,11 +920,11 @@ function renderCuentas(){
     if(!items.length){el.innerHTML='<div style="color:var(--text-success);font-size:13px;padding:8px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check"></i> Sin cuotas pendientes este mes</div>';return}
     el.innerHTML=items.map(c=>{
       const cuota=getCuota(c,mes);
-      const key=`${c.nombre}-${mes}`;const paid=!!pagos[key];
+      const key=`${c.nombre}-${mes}`;const paid=!!pagos[key];const esAdel=!!adel[key];
       const venc=c.venc?new Date(2026,mes-1,c.venc):null;
       const overdue=venc&&!paid&&venc<today;
       const esUltima=c.cuotaTotal&&cuota===`${c.cuotaTotal}/${c.cuotaTotal}`;
-      return`<div class="cuenta-item">
+      return`<div class="cuenta-wrap"><div class="cuenta-item">
         <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
           <button class="check-btn ${paid?'paid':''}" onclick="togglePago('${key}')">
             <i class="ti ${paid?'ti-check':'ti-circle'}"></i></button>
@@ -637,12 +937,40 @@ function renderCuentas(){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div class="item-amount" style="color:${paid?'var(--text-success)':overdue?'var(--text-danger)':'var(--text-primary)'}">${fmt(c.monto)}</div>
-          <span class="badge ${paid?'badge-paid':overdue?'badge-overdue':'badge-pending'}">${paid?'Pagado':overdue?'Vencido':'Pendiente'}</span>
+          <span class="badge ${esAdel?'badge-adelanto':paid?'badge-paid':overdue?'badge-overdue':'badge-pending'}">${esAdel?'Adelantada':paid?'Pagado':overdue?'Vencido':'Pendiente'}</span>
+        </div>
+        <button class="acc-menu" onclick="toggleAcciones('${c.id}')"><i class="ti ti-dots-vertical"></i></button>
+        </div>
+        <div class="acc-actions" id="acc-${c.id}" hidden>
+          <button onclick="abrirModalCuenta('${c.id}')"><i class="ti ti-pencil"></i> Editar</button>
+          ${c.tipo==='cuota'?`<button onclick="abrirModalAdelanto('${c.id}')"><i class="ti ti-player-track-next"></i> Adelantar cuotas</button>`:''}
+          <button onclick="abrirModalCancelar('${c.id}')"><i class="ti ti-circle-x"></i> Cancelar</button>
+          <button class="danger" onclick="eliminarCuenta('${c.id}')"><i class="ti ti-trash"></i> Eliminar</button>
         </div></div>`}).join('');
   }
 
   renderGrupo(activas.filter(c=>c.tipo==='cuota'),'c-cuotas');
   renderGrupo(activas.filter(c=>c.tipo==='servicio'),'c-servicios');
+
+  // Canceladas / saldadas
+  const canceladas=getCuentasCanceladas(mes);
+  document.getElementById('c-card-canceladas').hidden=!canceladas.length;
+  if(canceladas.length){
+    document.getElementById('c-canceladas').innerHTML=canceladas.map(c=>`
+      <div class="cuenta-item">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          <div class="item-icon" style="background:var(--bg-tertiary);color:var(--text-secondary)"><i class="ti ti-circle-check"></i></div>
+          <div style="min-width:0">
+            <div class="item-name" style="opacity:.6">${c.nombre}</div>
+            <div class="item-sub">Cancelada desde ${MESES[c.cancelDesde||1]}${c.cuotaTotal?` · ${c.cuotaTotal} cuotas`:''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span class="badge badge-cancel">CANCELADA</span>
+          <button class="acc-menu" onclick="reactivarCuenta('${c.id}')" title="Reactivar"><i class="ti ti-rotate"></i></button>
+        </div>
+      </div>`).join('');
+  }
 
   const totalMes=activas.reduce((s,c)=>s+c.monto,0);
   const pagadas=activas.filter(c=>!!pagos[`${c.nombre}-${mes}`]).reduce((s,c)=>s+c.monto,0);
